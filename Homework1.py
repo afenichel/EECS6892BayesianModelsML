@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import sys
+import os
 
 
 mat = scipy.io.loadmat('mnist_mat.mat')
@@ -65,11 +67,11 @@ def confusion_matrix():
 	number_4_misclassified=misclassified_4_idx.size
 	number_9_classified=classified_9_idx.size
 	number_9_misclassified=misclassified_9_idx.size
-	c_matrix=pd.DataFrame(columns=['Classified as 4', 'Classified as 9'], index=['4', '9'])
-	c_matrix['Classified as 4']['4']=number_4_classified
-	c_matrix['Classified as 9']['4']=number_4_misclassified
-	c_matrix['Classified as 9']['9']=number_9_classified
-	c_matrix['Classified as 4']['9']=number_9_misclassified
+	c_matrix=pd.DataFrame(columns=['Classified as 4', 'Classified as 9'], index=['ytest= 4', 'ytest= 9'])
+	c_matrix['Classified as 4']['ytest= 4']=number_4_classified
+	c_matrix['Classified as 9']['ytest= 4']=number_4_misclassified
+	c_matrix['Classified as 9']['ytest= 9']=number_9_classified
+	c_matrix['Classified as 4']['ytest= 9']=number_9_misclassified
 	return c_matrix
 
 def misclassified_digits(seed):
@@ -79,14 +81,16 @@ def misclassified_digits(seed):
 	misclassified=mat['ytest'][0]-y_guess
 	m=np.where(misclassified!=0)[0]
 	r=np.random.choice(m,3)
-	image_prediction(r, y_guess, probability)
+	problem='4c: Misclassified Predictions'
+	image_prediction(r, y_guess, probability, problem)
 
 def ambiguous_predictions():
 	probability=prediction_probability()
 	y_guess=predictions()
 	a=np.power(0.5-probability[0], 2)
 	idx_min=a.argsort()[0:3]
-	image_prediction(idx_min, y_guess, probability)
+	problem='4d: Ambidugious Predictions'
+	image_prediction(idx_min, y_guess, probability, problem)
 
 def prediction_probability():
 	r=mat['ytest'].size
@@ -99,9 +103,10 @@ def prediction_probability():
 	probability=1-pr/np.vstack((np.sum(pr,0),np.sum(pr,0)))
 	return probability
 
-def image_prediction(index_array, y_guess, probability):	
+def image_prediction(index_array, y_guess, probability, problem):	
 	p={}
-	fig = plt.figure(figsize=(15,5))
+	fig = plt.figure(figsize=(15,7))
+	fig.suptitle(problem, fontsize=18)
 	for i in index_array:
 		idx=list(index_array).index(i)
 		binary_map=np.asarray([4,9])
@@ -109,11 +114,35 @@ def image_prediction(index_array, y_guess, probability):
 		classification=binary_map[y_guess[i]]
 		actual=binary_map[y_actual]
 		img=np.reshape(np.dot(mat['Q'], mat['Xtest'])[:,i], (28,28))
-		title='Pr(y*= %s |x*, Xtrain, ytrain) = %s \n Bayes Classifier guess = %s \n ytest = %s' %(actual, '{:.4%}'.format(probability[y_actual][i]), classification, actual)
+		title='Pr(y*= %s |x*, Xtrain, ytrain) = %s \n Bayes Classifier Guess = %s \n ytest = %s' %(actual, '{:.4%}'.format(probability[y_actual][i]), classification, actual)
 		p[idx]=fig.add_subplot(1,3,idx+1)
-		p[idx].set_title(title, fontsize=10)
+		p[idx].set_title(title, fontsize=12)
 		p[idx].axis('off')
 		p[idx].imshow(img)
-	fig.show()	
+	plt.interactive(True)	
+	fig.savefig(problem.replace(':','').replace(' ', '_'))
+#	fig.show()	
+
 	
-	
+def main(argv):
+	i=argv[0]
+	seed=int(argv[1])
+	binary_map=np.asarray([4,9])
+	y_guess=predictions()
+	n=len(y_guess)
+	y_guess_map=np.zeros(n)
+	y_guess_map[np.where(y_guess==0)]=4
+	y_guess_map[np.where(y_guess==1)]=9
+	matrix=confusion_matrix()
+	print '4a: The %s-th Xtest value is classified as %s.' % (i, binary_map[y_guess[i]])
+	print '4b: The most probable label for each Xtest feature vector is \n    %s' % y_guess_map.astype(int)
+	print '    The confusion matrix for correct clssification/misclassification is as follows \n %s' %matrix
+	misclassified_digits(seed)
+	print '4c: Image has been saved as \'4c: Misclassified Predictions.png\''
+	os.system("4c_Misclassified_Predictions.png")
+	ambiguous_predictions()
+	print '4d: Image has been saved as \'4d: Ambidugious Predictions.png\''
+	os.system("4d_Ambidugious_Predictions.png")
+
+if __name__ == '__main__':
+	main(sys.argv[1:])	
