@@ -116,4 +116,4 @@ def image_prediction(index_array, y_guess, probability):
 		p[idx].imshow(img)
 	fig.show()	
 	
-#read me says data has mean subtracted out, but doesnt sum to 0 ---ask about this
+	
