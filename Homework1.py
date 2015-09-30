@@ -26,14 +26,20 @@ def likelihood(y, i):
 	a=1
 	b=1
 	c=1
-	x_new=mat['Xtest'][:,i]
-	x=mat['Xtrain'][:,np.where(mat['ytrain']==y)[1]]
+	p=mat['Xtrain'].shape[0]
+	stdev=np.std(mat['Xtrain'],1).reshape(p, 1)
+	Xtest=mat['Xtest']/stdev
+	#Xtest=mat['Xtest']
+	x_new=Xtest[:,i]
+	Xtrain=mat['Xtrain']/stdev
+	#Xtrain=mat['Xtrain']
+	x=Xtrain[:,np.where(mat['ytrain']==y)[1]]
 	n=x.shape[1]
 	v=2*b+n
 	scale=2*float((a*n+a+1))/float((v+a*n*v))
 	mean=np.mean(x,1)
 	mu=n*mean/float((1/float(a)+n))
-	t=sum((-(v+1)/2)*np.log(1+np.power(np.subtract(x_new,mu),2)/(scale*v)))
+	t=sum(-(v+1)/2*np.log(1+np.power(np.subtract(x_new,mu),2)/(scale*v)))
 	return t
 
 def posterior(y, i):
@@ -89,6 +95,7 @@ def ambiguous_predictions():
 	y_guess=predictions()
 	a=np.power(0.5-probability[0], 2)
 	idx_min=a.argsort()[0:3]
+	print idx_min
 	problem='4d: Ambidugious Predictions'
 	image_prediction(idx_min, y_guess, probability, problem)
 
