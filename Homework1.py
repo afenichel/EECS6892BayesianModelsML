@@ -7,9 +7,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-
 mat = scipy.io.loadmat('mnist_mat.mat')
-
 
 def prior(y):
 	e=1.0
@@ -95,7 +93,7 @@ def ambiguous_predictions():
 	y_guess=predictions()
 	a=np.power(0.5-probability[0], 2)
 	idx_min=a.argsort()[0:3]
-	problem='4d: Ambidugious Predictions'
+	problem='4d: Ambiguous Predictions'
 	image_prediction(idx_min, y_guess, probability, problem)
 
 def prediction_probability():
@@ -127,12 +125,21 @@ def image_prediction(index_array, y_guess, probability, problem):
 		p[idx].imshow(img)
 	plt.interactive(True)	
 	fig.savefig(problem.replace(':','').replace(' ', '_'))
-#	fig.show()	
 
 	
 def main(argv):
-	i=argv[0]
+	i=int(argv[0])
 	seed=int(argv[1])
+	if i in range(11,14):
+		q='th' 
+	elif i%10==1:
+		q='st'
+	elif i%10==2:
+		q='nd'
+	elif i%10==3:
+		q='rd'
+	else:
+		q='th'	
 	binary_map=np.asarray([4,9])
 	y_guess=predictions()
 	n=len(y_guess)
@@ -143,13 +150,15 @@ def main(argv):
 	misclassified_digits(seed)
 	ambiguous_predictions()
 	sys.stdout=open('homework1.txt', 'w')
-	print '4a: The %s-th Xtest value is classified as %s.' % (i, binary_map[y_guess[i]])
+	print '4a: The %s-%s Xtest value is classified as %s.' % (i, q, binary_map[y_guess[i]])
 	print '4b: The most probable label for each Xtest feature vector is \n    %s' % y_guess_map.astype(int)
-	print '    The confusion matrix for correct clssification/misclassification is as follows \n %s' %matrix
+	print '    The confusion matrix for correct classification/misclassification is as follows \n %s' %matrix
 	print '4c: Image has been saved as \'4c: Misclassified Predictions.png\''
 	os.system("4c_Misclassified_Predictions.png")
-	print '4d: Image has been saved as \'4d: Ambidugious Predictions.png\''
-	os.system("4d_Ambidugious_Predictions.png")
+	print '4d: Image has been saved as \'4d: Ambiguous Predictions.png\''
+	os.system("4d_Ambiguous_Predictions.png")
+	sys.stdout.close()
+	os.system("homework1.txt")
 
 
 if __name__ == '__main__':
