@@ -12,8 +12,8 @@ mat = scipy.io.loadmat('mnist_mat.mat')
 
 
 def prior(y):
-	e=1
-	f=1
+	e=1.0
+	f=1.0
 	prior={}
 	N=mat['ytest'].size
 	if y==1:
@@ -23,11 +23,11 @@ def prior(y):
 	return prior
 
 def likelihood(y, i):
-	a=1
-	b=1
-	c=1
+	a=1.0
+	b=1.0
+	c=1.0
 	p=mat['Xtrain'].shape[0]
-	stdev=np.std(mat['Xtrain'],1).reshape(p, 1)
+	stdev=np.std(np.hstack((mat['Xtrain'],mat['Xtest'])),1).reshape(p, 1)
 	Xtest=mat['Xtest']/stdev
 	#Xtest=mat['Xtest']
 	x_new=Xtest[:,i]
@@ -35,7 +35,7 @@ def likelihood(y, i):
 	#Xtrain=mat['Xtrain']
 	x=Xtrain[:,np.where(mat['ytrain']==y)[1]]
 	n=x.shape[1]
-	v=2*b+n
+	v=2.0*b+n
 	scale=2*float((a*n+a+1))/float((v+a*n*v))
 	mean=np.mean(x,1)
 	mu=n*mean/float((1/float(a)+n))
@@ -95,7 +95,6 @@ def ambiguous_predictions():
 	y_guess=predictions()
 	a=np.power(0.5-probability[0], 2)
 	idx_min=a.argsort()[0:3]
-	print idx_min
 	problem='4d: Ambidugious Predictions'
 	image_prediction(idx_min, y_guess, probability, problem)
 
@@ -107,7 +106,7 @@ def prediction_probability():
 		pr_0[i]=posterior(0, i)
 		pr_1[i]=posterior(1, i)
 	pr=np.vstack((pr_0, pr_1))
-	probability=1-pr/np.vstack((np.sum(pr,0),np.sum(pr,0)))
+	probability=1-pr/np.sum(pr, 0)
 	return probability
 
 def image_prediction(index_array, y_guess, probability, problem):	
@@ -141,15 +140,17 @@ def main(argv):
 	y_guess_map[np.where(y_guess==0)]=4
 	y_guess_map[np.where(y_guess==1)]=9
 	matrix=confusion_matrix()
+	misclassified_digits(seed)
+	ambiguous_predictions()
+	sys.stdout=open('homework1.txt', 'w')
 	print '4a: The %s-th Xtest value is classified as %s.' % (i, binary_map[y_guess[i]])
 	print '4b: The most probable label for each Xtest feature vector is \n    %s' % y_guess_map.astype(int)
 	print '    The confusion matrix for correct clssification/misclassification is as follows \n %s' %matrix
-	misclassified_digits(seed)
 	print '4c: Image has been saved as \'4c: Misclassified Predictions.png\''
 	os.system("4c_Misclassified_Predictions.png")
-	ambiguous_predictions()
 	print '4d: Image has been saved as \'4d: Ambidugious Predictions.png\''
 	os.system("4d_Ambidugious_Predictions.png")
+
 
 if __name__ == '__main__':
 	main(sys.argv[1:])	
